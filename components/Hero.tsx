@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import TransitionLink from "@/components/TransitionLink";
 
 const W1 = ["J", "A", "D", "E"];
 const W2 = ["L", "E", "L", "I", "E", "V", "R", "E"];
@@ -84,7 +84,7 @@ export default function Hero({ loaded }: { loaded: boolean }) {
         style={{ zIndex: 10, ...fade(0) }}
       >
         {/* Logo */}
-        <Link
+        <TransitionLink
           href="/"
           style={{
             fontFamily   : "var(--font-londrina-solid)",
@@ -96,29 +96,29 @@ export default function Hero({ loaded }: { loaded: boolean }) {
           }}
         >
           JADE L.
-        </Link>
+        </TransitionLink>
 
-        {/* Bouton Menu */}
-        <Link
+        {/* Bouton Menu — rectangle entièrement transparent */}
+        <TransitionLink
           href="/menu"
-          className="block tracking-[0.2em] uppercase text-xs"
           style={{
-            fontFamily          : "var(--font-poppins)",
-            fontWeight          : 300,
-            color               : "#A7C957",
-            backdropFilter      : "blur(18px)",
-            WebkitBackdropFilter: "blur(18px)",
-            background          : "rgba(255,255,255,0.06)",
-            border              : "1px solid rgba(255,255,255,0.18)",
-            borderRadius        : "9999px",
-            padding             : "9px 28px",
-            transition          : "color 0.25s ease",
+            fontFamily   : "var(--font-poppins)",
+            fontWeight   : 300,
+            fontSize     : "0.95rem",
+            letterSpacing: "0.22em",
+            textTransform: "uppercase" as const,
+            color        : "#F5F2ED",
+            padding      : "12px 32px",
+            background   : "transparent",
+            border       : "none",
+            cursor       : "pointer",
+            transition   : "opacity 0.25s ease",
           }}
-          onMouseEnter={e => (e.currentTarget.style.color = "#F5F2ED")}
-          onMouseLeave={e => (e.currentTarget.style.color = "#A7C957")}
+          onMouseEnter={e => (e.currentTarget.style.opacity = "0.5")}
+          onMouseLeave={e => (e.currentTarget.style.opacity = "1")}
         >
           Menu
-        </Link>
+        </TransitionLink>
       </nav>
 
       {/* ── "Communication & Création Design" — milieu-haut gauche ── */}

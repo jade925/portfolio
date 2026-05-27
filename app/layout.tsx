@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Londrina_Solid, Poppins } from "next/font/google";
 import "./globals.css";
+import { TransitionProvider } from "@/context/TransitionContext";
 
 const londrinaSolid = Londrina_Solid({
   variable: "--font-londrina-solid",
@@ -28,7 +29,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr" className={`${londrinaSolid.variable} ${poppins.variable}`}>
-      <body>{children}</body>
+      <body>
+        <TransitionProvider>{children}</TransitionProvider>
+      </body>
     </html>
   );
 }
