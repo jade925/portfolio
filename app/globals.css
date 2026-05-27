@@ -75,7 +75,7 @@
   line-height: 0.88;
   text-transform: uppercase;
   color: inherit;
-  font-size: clamp(6rem, 15vw, 22rem);
+  font-size: clamp(4.5rem, 12vw, 18rem);
   letter-spacing: 0.08em;
   display: block;
   white-space: nowrap;
