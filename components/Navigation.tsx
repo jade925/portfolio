@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import TransitionLink from "@/components/TransitionLink";
 import { usePathname } from "next/navigation";
 
@@ -25,27 +26,29 @@ export default function Navigation() {
         JADE L.
       </TransitionLink>
 
-      {/* Bouton Menu / Fermer — rectangle entièrement transparent */}
-      <TransitionLink
+      {/* Bouton Menu / Fermer — glassmorphism, navigation directe sans overlay */}
+      <Link
         href={isMenu ? "/" : "/menu"}
         style={{
-          fontFamily   : "var(--font-poppins)",
-          fontWeight   : 300,
-          fontSize     : "0.95rem",
-          letterSpacing: "0.22em",
-          textTransform: "uppercase" as const,
-          color        : "#232323",
-          padding      : "12px 32px",
-          background   : "transparent",
-          border       : "none",
-          cursor       : "pointer",
-          transition   : "opacity 0.25s ease",
+          fontFamily          : "var(--font-poppins)",
+          fontWeight          : 300,
+          fontSize            : "0.85rem",
+          letterSpacing       : "0.22em",
+          textTransform       : "uppercase",
+          color               : "#232323",
+          padding             : "10px 28px",
+          backdropFilter      : "blur(18px)",
+          WebkitBackdropFilter: "blur(18px)",
+          background          : "rgba(35,35,35,0.06)",
+          border              : "1px solid rgba(35,35,35,0.15)",
+          borderRadius        : "6px",
+          transition          : "opacity 0.25s ease",
         }}
-        onMouseEnter={e => (e.currentTarget.style.opacity = "0.4")}
+        onMouseEnter={e => (e.currentTarget.style.opacity = "0.5")}
         onMouseLeave={e => (e.currentTarget.style.opacity = "1")}
       >
         {isMenu ? "Fermer" : "Menu"}
-      </TransitionLink>
+      </Link>
     </nav>
   );
 }

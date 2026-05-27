@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import TransitionLink from "@/components/TransitionLink";
 
 const W1 = ["J", "A", "D", "E"];
@@ -98,27 +99,29 @@ export default function Hero({ loaded }: { loaded: boolean }) {
           JADE L.
         </TransitionLink>
 
-        {/* Bouton Menu — rectangle entièrement transparent */}
-        <TransitionLink
+        {/* Bouton Menu — glassmorphism, navigation directe sans overlay */}
+        <Link
           href="/menu"
           style={{
-            fontFamily   : "var(--font-poppins)",
-            fontWeight   : 300,
-            fontSize     : "0.95rem",
-            letterSpacing: "0.22em",
-            textTransform: "uppercase" as const,
-            color        : "#F5F2ED",
-            padding      : "12px 32px",
-            background   : "transparent",
-            border       : "none",
-            cursor       : "pointer",
-            transition   : "opacity 0.25s ease",
+            fontFamily          : "var(--font-poppins)",
+            fontWeight          : 300,
+            fontSize            : "0.85rem",
+            letterSpacing       : "0.22em",
+            textTransform       : "uppercase",
+            color               : "#F5F2ED",
+            padding             : "10px 28px",
+            backdropFilter      : "blur(18px)",
+            WebkitBackdropFilter: "blur(18px)",
+            background          : "rgba(255,255,255,0.08)",
+            border              : "1px solid rgba(255,255,255,0.15)",
+            borderRadius        : "6px",
+            transition          : "opacity 0.25s ease",
           }}
-          onMouseEnter={e => (e.currentTarget.style.opacity = "0.5")}
+          onMouseEnter={e => (e.currentTarget.style.opacity = "0.6")}
           onMouseLeave={e => (e.currentTarget.style.opacity = "1")}
         >
           Menu
-        </TransitionLink>
+        </Link>
       </nav>
 
       {/* ── "Communication & Création Design" — milieu-haut gauche ── */}
