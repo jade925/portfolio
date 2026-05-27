@@ -83,42 +83,42 @@ export default function Hero({ loaded }: { loaded: boolean }) {
         className="absolute top-0 left-0 right-0 flex items-center justify-between px-8 md:px-14 py-8"
         style={{ zIndex: 10, ...fade(0) }}
       >
-        <span
-          className="tracking-[0.22em] uppercase text-xs"
-          style={{ fontFamily: "var(--font-poppins)", fontWeight: 300, color: "#F5F2ED" }}
+        {/* Logo */}
+        <Link
+          href="/"
+          style={{
+            fontFamily   : "var(--font-londrina-solid)",
+            fontWeight   : 900,
+            fontSize     : "1.6rem",
+            color        : "#A7C957",
+            letterSpacing: "0.06em",
+            lineHeight   : 1,
+          }}
         >
-          Jade Lelièvre
-        </span>
+          JADE L.
+        </Link>
 
-        <ul className="flex items-center gap-3">
-          {[
-            { href: "/about",    label: "À propos" },
-            { href: "/projects", label: "Projets"  },
-          ].map(({ href, label }) => (
-            <li key={href}>
-              <Link
-                href={href}
-                className="block tracking-[0.15em] uppercase text-xs"
-                style={{
-                  fontFamily          : "var(--font-poppins)",
-                  fontWeight          : 300,
-                  color               : "#A7C957",
-                  backdropFilter      : "blur(18px)",
-                  WebkitBackdropFilter: "blur(18px)",
-                  background          : "rgba(255,255,255,0.06)",
-                  border              : "1px solid rgba(255,255,255,0.18)",
-                  borderRadius        : "9999px",
-                  padding             : "9px 24px",
-                  transition          : "color 0.25s ease",
-                }}
-                onMouseEnter={e => (e.currentTarget.style.color = "#F5F2ED")}
-                onMouseLeave={e => (e.currentTarget.style.color = "#A7C957")}
-              >
-                {label}
-              </Link>
-            </li>
-          ))}
-        </ul>
+        {/* Bouton Menu */}
+        <Link
+          href="/menu"
+          className="block tracking-[0.2em] uppercase text-xs"
+          style={{
+            fontFamily          : "var(--font-poppins)",
+            fontWeight          : 300,
+            color               : "#A7C957",
+            backdropFilter      : "blur(18px)",
+            WebkitBackdropFilter: "blur(18px)",
+            background          : "rgba(255,255,255,0.06)",
+            border              : "1px solid rgba(255,255,255,0.18)",
+            borderRadius        : "9999px",
+            padding             : "9px 28px",
+            transition          : "color 0.25s ease",
+          }}
+          onMouseEnter={e => (e.currentTarget.style.color = "#F5F2ED")}
+          onMouseLeave={e => (e.currentTarget.style.color = "#A7C957")}
+        >
+          Menu
+        </Link>
       </nav>
 
       {/* ── "Communication & Création Design" — milieu-haut gauche ── */}

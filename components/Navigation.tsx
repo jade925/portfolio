@@ -3,49 +3,47 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const links = [
-  { href: "/about", label: "À propos" },
-  { href: "/projects", label: "Projets" },
-  { href: "mailto:jade.lelievre@gmail.com", label: "Contact", external: true },
-];
-
 export default function Navigation({ delay = 0 }: { delay?: number }) {
   const pathname = usePathname();
+  const isMenu   = pathname === "/menu";
 
   return (
     <nav
-      className="hero-enter flex items-center justify-between px-8 md:px-14 py-8 w-full"
-      style={{ animationDelay: `${delay}ms` }}
+      className="flex items-center justify-between px-8 md:px-14 py-8 w-full"
     >
       {/* Logo */}
       <Link
         href="/"
-        className="text-[#232323] tracking-[0.22em] uppercase text-xs font-light hover:opacity-60 transition-opacity"
-        style={{ fontFamily: "var(--font-poppins), sans-serif" }}
+        style={{
+          fontFamily   : "var(--font-londrina-solid)",
+          fontWeight   : 900,
+          fontSize     : "1.6rem",
+          color        : "#A7C957",
+          letterSpacing: "0.06em",
+          lineHeight   : 1,
+        }}
       >
-        Jade Lelièvre
+        JADE L.
       </Link>
 
-      {/* Links */}
-      <ul className="flex items-center gap-8">
-        {links.map(({ href, label, external }) => {
-          const isActive = !external && pathname === href;
-          return (
-            <li key={href}>
-              <Link
-                href={href}
-                {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-                className={`text-xs tracking-[0.18em] uppercase transition-all hover:opacity-60 ${
-                  isActive ? "text-[#4A7C59]" : "text-[#232323]"
-                }`}
-                style={{ fontFamily: "var(--font-poppins), sans-serif", fontWeight: 300 }}
-              >
-                {label}
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
+      {/* Bouton Menu / Fermer */}
+      <Link
+        href={isMenu ? "/" : "/menu"}
+        className="block tracking-[0.2em] uppercase text-xs"
+        style={{
+          fontFamily  : "var(--font-poppins)",
+          fontWeight  : 300,
+          color       : "#232323",
+          border      : "1px solid rgba(35,35,35,0.3)",
+          borderRadius: "9999px",
+          padding     : "9px 28px",
+          transition  : "opacity 0.25s ease",
+        }}
+        onMouseEnter={e => (e.currentTarget.style.opacity = "0.5")}
+        onMouseLeave={e => (e.currentTarget.style.opacity = "1")}
+      >
+        {isMenu ? "Fermer" : "Menu"}
+      </Link>
     </nav>
   );
 }
