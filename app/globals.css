@@ -1,0 +1,109 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-heading: var(--font-londrina-solid);
+  --font-body: var(--font-poppins);
+  --color-ink: #232323;
+  --color-cream: #F5F2ED;
+  --color-sage: #A7C957;
+}
+
+/* ────────────────────────────────
+   Keyframes
+──────────────────────────────── */
+
+@keyframes digitRollUp {
+  from { transform: translateY(0);     opacity: 1; }
+  to   { transform: translateY(-130%); opacity: 0; }
+}
+@keyframes digitRollIn {
+  from { transform: translateY(130%);  opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
+}
+@keyframes curtainUp {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-100%); }
+}
+
+/* Flip simple (hero) */
+@keyframes letterFlip {
+  0%   { transform: rotateY(0deg); }
+  50%  { transform: rotateY(90deg); }
+  100% { transform: rotateY(0deg); }
+}
+
+/* Flip avec changement de couleur (preloader → vert) */
+@keyframes letterFlipToGreen {
+  0%   { transform: rotateY(0deg);  color: #232323; }
+  48%  { transform: rotateY(88deg); color: #232323; }
+  52%  { transform: rotateY(90deg); color: #A7C957; }
+  100% { transform: rotateY(0deg);  color: #A7C957; }
+}
+
+@keyframes scrollPulse {
+  0%   { transform: translateY(-100%); }
+  100% { transform: translateY(200%); }
+}
+
+/* ────────────────────────────────
+   Classes d'animation utilitaires
+──────────────────────────────── */
+
+.digit-exit {
+  animation: digitRollUp 0.32s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+.digit-enter {
+  animation: digitRollIn 0.32s cubic-bezier(0, 0, 0.2, 1) forwards;
+}
+.curtain-exit {
+  animation: curtainUp 0.7s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+}
+.letter-flip {
+  animation: letterFlip 0.34s ease-in-out both;
+}
+.letter-flip-to-green {
+  animation: letterFlipToGreen 0.38s ease-in-out both;
+}
+
+/* ────────────────────────────────
+   Hero name
+──────────────────────────────── */
+
+.hero-name {
+  font-family: var(--font-londrina-solid), sans-serif;
+  font-weight: 900;
+  line-height: 0.88;
+  text-transform: uppercase;
+  color: inherit;
+  font-size: clamp(6rem, 15vw, 22rem);
+  letter-spacing: 0.08em;
+  display: block;
+  white-space: nowrap;
+  text-align: center;
+}
+
+/* ────────────────────────────────
+   Base
+──────────────────────────────── */
+
+@layer base {
+  html { overflow-x: hidden; }
+
+  body {
+    background-color: #F5F2ED;
+    color: #232323;
+    font-family: var(--font-poppins), sans-serif;
+    font-weight: 300;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-londrina-solid), sans-serif;
+    font-weight: 900;
+  }
+
+  ::selection {
+    background: #A7C957;
+    color: #232323;
+  }
+}
