@@ -14,7 +14,7 @@ export default function Hero({ loaded }: { loaded: boolean }) {
   const letterRefs  = useRef<(HTMLSpanElement | null)[]>([]);
   const mouseTarget = useRef(0.5);   // position souris cible  (0 = gauche, 1 = droite)
   const mouseCurrent = useRef(0.5);  // position lissée (lerp)
-  const rafId = useRef<number>();
+  const rafId = useRef<number | undefined>(undefined);
 
   /* ── Effet perspective basé sur position souris ──────────────────────────
      Quand souris à gauche  → lettres gauche petites,  lettres droite grandes
