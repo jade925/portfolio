@@ -18,14 +18,14 @@ export default function PageTransitionOverlay({
   const [bgExiting,    setBgExiting]    = useState(false);
   const letterRefs = useRef<(HTMLSpanElement | null)[]>([]);
 
-  /* Flip lettre → verte (même logique que LoadingScreen) */
+  /* Flip lettre — reste noire, pas de changement de couleur */
   useEffect(() => {
     if (textFlipIdx < 0 || textFlipIdx >= TOTAL) return;
     const el = letterRefs.current[textFlipIdx];
     if (!el) return;
-    el.classList.remove("letter-flip-to-green");
+    el.classList.remove("letter-flip");
     void el.offsetWidth;
-    el.classList.add("letter-flip-to-green");
+    el.classList.add("letter-flip");
   }, [textFlipIdx]);
 
   useEffect(() => {
