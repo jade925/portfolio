@@ -59,11 +59,13 @@ function Paper({
 function MacFolder({ open, mouseX, mouseY }: {
   open: boolean; mouseX: number; mouseY: number;
 }) {
-  // Dimensions (héritent du font-size parent clamp 4.5rem→18rem)
-  const FW   = "1.2em";   // largeur corps
-  const FH   = "0.86em";  // hauteur corps
-  const TH   = "0.13em";  // hauteur onglet
-  const TW   = "0.44em";  // largeur onglet
+  // Dimensions calées sur les proportions 302×252 du favicon macOS
+  // Scale : FW=1.2em pour 302px  →  0.00397em/px
+  // Tab : ~118×44px, Body : ~302×208px, Total hauteur : 252px → 1.0em
+  const FW   = "1.2em";   // largeur totale  (302px)
+  const FH   = "0.825em"; // hauteur corps   (208px)
+  const TH   = "0.175em"; // hauteur onglet  (44px)
+  const TW   = "0.47em";  // largeur onglet  (118px)
 
   // Ombre portée du dossier
   const shadow = open
@@ -130,8 +132,8 @@ function MacFolder({ open, mouseX, mouseY }: {
         zIndex                : 4,
         transformStyle        : "preserve-3d",
         transformOrigin       : "top center",   // charnière tout en haut
-        transform             : open ? "rotateX(-170deg)" : "rotateX(0deg)",
-        transition            : "transform 0.55s cubic-bezier(0.4,0,0.18,1)",
+        transform             : open ? "rotateX(30deg)" : "rotateX(0deg)",
+        transition            : "transform 0.45s cubic-bezier(0.4,0,0.18,1)",
         backfaceVisibility    : "hidden",
         WebkitBackfaceVisibility: "hidden",
       }}>
@@ -266,7 +268,7 @@ export default function FolderSection() {
       <div
         ref={rowRef}
         style={{
-          fontSize      : "clamp(4.5rem, 12vw, 18rem)",
+          fontSize      : "clamp(6rem, 16vw, 22rem)",
           display       : "flex",
           alignItems    : "flex-end",
           gap           : "0.05em",
@@ -284,7 +286,7 @@ export default function FolderSection() {
           fontWeight: 900,
           color     : "#232323",
         }}>
-          pr
+          Pr
         </span>
 
         <div style={{ flexShrink: 0, alignSelf: "flex-end" }}>

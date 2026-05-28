@@ -59,10 +59,10 @@
   animation: curtainUp 0.7s cubic-bezier(0.76, 0, 0.24, 1) forwards;
 }
 .letter-flip {
-  animation: letterFlip 0.34s ease-in-out both;
+  animation: letterFlip 0.22s ease-in-out both;
 }
 .letter-flip-to-green {
-  animation: letterFlipToGreen 0.38s ease-in-out both;
+  animation: letterFlipToGreen 0.22s ease-in-out both;
 }
 
 /* ────────────────────────────────

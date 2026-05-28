@@ -113,7 +113,7 @@ export default function LoadingScreen({
         setTextFlipIdx(idx);
         idx++;
         if (idx < TOTAL_LETTERS) {
-          setTimeout(next, 70);
+          setTimeout(next, 40);
         } else {
           /* Toutes les lettres sont vertes — descente probablement terminée aussi */
           setTimeout(() => {
@@ -124,8 +124,8 @@ export default function LoadingScreen({
               setBgExiting(true);     // rideau monte
               onHeroReady();          // Hero commence à se rendre en dessous
               setTimeout(onComplete, 720); // Hero totalement visible → démonte le preloader
-            }, 250);
-          }, 340);
+            }, 200);
+          }, 180);
         }
       };
       next();

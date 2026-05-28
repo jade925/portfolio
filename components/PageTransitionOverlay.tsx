@@ -39,14 +39,14 @@ export default function PageTransitionOverlay({
         setTextFlipIdx(idx);
         idx++;
         if (idx < TOTAL) {
-          setTimeout(next, 70);
+          setTimeout(next, 40);
         } else {
           setTimeout(() => {
             setTextFlipIdx(-1);
             setBgExiting(true); // rideau monte
             onNavigate();       // router.push déclenché simultanément
             setTimeout(onComplete, 720);
-          }, 280);
+          }, 180);
         }
       };
       next();
