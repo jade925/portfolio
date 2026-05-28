@@ -57,44 +57,41 @@ export default function PageTransitionOverlay({
 
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 9999 }}>
-
-      {/* Fond beige — monte comme rideau */}
+      {/* Fond + texte dans le même div → le texte monte avec le rideau */}
       <div
-        key={bgExiting ? "exit" : "on"}
         className={bgExiting ? "curtain-exit" : ""}
-        style={{ position: "absolute", inset: 0, backgroundColor: "#F5F2ED" }}
-      />
-
-      {/* Texte centré */}
-      <div style={{
-        position   : "relative",
-        zIndex     : 1,
-        width      : "100%",
-        height     : "100%",
-        display    : "flex",
-        alignItems : "center",
-        justifyContent: "center",
-        perspective: "800px",
-        opacity    : textVisible ? 1 : 0,
-        transition : bgExiting ? "opacity 0.35s ease" : "opacity 0.28s ease",
-      }}>
-        <h1 className="hero-name" style={{ color: "#232323" }}>
-          {W1.map((l, i) => (
-            <span key={`w1-${i}`}
-              ref={el => { letterRefs.current[i] = el; }}
-              style={{ display: "inline-block", backfaceVisibility: "hidden" }}>
-              {l}
-            </span>
-          ))}
-          <span style={{ display: "inline-block", width: "0.25em" }} />
-          {W2.map((l, i) => (
-            <span key={`w2-${i}`}
-              ref={el => { letterRefs.current[W1.length + i] = el; }}
-              style={{ display: "inline-block", backfaceVisibility: "hidden" }}>
-              {l}
-            </span>
-          ))}
-        </h1>
+        style={{
+          position      : "absolute",
+          inset         : 0,
+          backgroundColor: "#F5F2ED",
+          display       : "flex",
+          alignItems    : "center",
+          justifyContent: "center",
+          perspective   : "800px",
+        }}
+      >
+        <div style={{
+          opacity   : textVisible ? 1 : 0,
+          transition: bgExiting ? "opacity 0.3s ease" : "opacity 0.28s ease",
+        }}>
+          <h1 className="hero-name" style={{ color: "#232323" }}>
+            {W1.map((l, i) => (
+              <span key={`w1-${i}`}
+                ref={el => { letterRefs.current[i] = el; }}
+                style={{ display: "inline-block", backfaceVisibility: "hidden" }}>
+                {l}
+              </span>
+            ))}
+            <span style={{ display: "inline-block", width: "0.25em" }} />
+            {W2.map((l, i) => (
+              <span key={`w2-${i}`}
+                ref={el => { letterRefs.current[W1.length + i] = el; }}
+                style={{ display: "inline-block", backfaceVisibility: "hidden" }}>
+                {l}
+              </span>
+            ))}
+          </h1>
+        </div>
       </div>
     </div>
   );

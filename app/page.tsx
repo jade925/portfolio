@@ -1,14 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import LoadingScreen from "@/components/LoadingScreen";
 import Hero from "@/components/Hero";
+import FolderSection from "@/components/FolderSection";
 
 export default function Home() {
-  // heroReady  → Hero commence à se rendre SOUS le rideau (fade-in simultané)
-  // preloaderOut → LoadingScreen est démonté (rideau terminé)
   const [heroReady,    setHeroReady]    = useState(false);
   const [preloaderOut, setPreloaderOut] = useState(false);
+
+  useEffect(() => {
+    // Si le site a déjà été chargé cette session → passe le preloader entier
+    if (sessionStorage.getItem("siteLoaded")) {
+      setHeroReady(true);
+      setPreloaderOut(true);
+    } else {
+      sessionStorage.setItem("siteLoaded", "1");
+    }
+  }, []);
 
   return (
     <main>
@@ -19,6 +28,7 @@ export default function Home() {
         />
       )}
       <Hero loaded={heroReady} />
+      <FolderSection />
     </main>
   );
 }
