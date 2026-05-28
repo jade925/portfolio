@@ -3,168 +3,219 @@
 import { useState, useRef, useCallback } from "react";
 import { usePageTransition } from "@/context/TransitionContext";
 
-const G      = "#A7C957";
-const G_DARK = "#8BBF3A";
-const G_TAB  = "#7FA832";
+const G       = "#A7C957"; // vert principal
+const G_DARK  = "#8BBF3A"; // vert arrière / tab
+const G_SHADE = "#78AE28"; // ombre légère
 
 /* ─────────────────────────────────────────────────────────────
-   Dossier Mac — toutes les dimensions en em pour scaler avec
-   le font-size parent (clamp 4.5rem→18rem identique au hero)
+   Feuille individuelle
 ───────────────────────────────────────────────────────────── */
-function MacFolder({
-  open,
-  mouseX,
-  mouseY,
+function Paper({
+  open, rotZ, tx, mouseX, mouseY, delay,
 }: {
-  open: boolean;
-  mouseX: number;
-  mouseY: number;
+  open: boolean; rotZ: number; tx: number;
+  mouseX: number; mouseY: number; delay: number;
 }) {
-  const tiltZ  = (mouseX - 0.5) * 10;   // ±5 deg selon souris X
-  const tiltTx = (mouseX - 0.5) * 0.07; // ±0.035 em
-  const tiltTy = (mouseY - 0.5) * 0.04; // ±0.02 em
-
-  /* Feuilles — les unes derrière les autres (stacked + tilt souris) */
-  const paper = (
-    rotZ  : number,  // deg de rotation de base
-    tx    : number,  // translation X de base (em)
-    delay : number,  // délai transition (ms)
-    yOff  : number,  // décalage vertical "derrière" (em)
-  ): React.CSSProperties => ({
-    position      : "absolute",
-    width         : "calc(1.2em - 0.16em)",
-    height        : "calc(0.86em - 0.1em)",
-    top           : `calc(0.12em + 0.05em + ${yOff}em)`,
-    left          : "0.08em",
-    background    : "#F9F8F4",
-    borderRadius  : "0.03em",
-    boxShadow     : "0 0.01em 0.05em rgba(0,0,0,0.09)",
-    transform     : open
-      ? `rotateZ(${rotZ + tiltZ * 0.22}deg) translateX(${tx + tiltTx}em) translateY(${tiltTy}em)`
-      : "rotateZ(0deg) translateX(0em) translateY(0em)",
-    transition    : `transform 0.42s cubic-bezier(0.34,1.2,0.64,1) ${delay}ms`,
-  });
+  const mr = (mouseX - 0.5) * 6;   // tilt souris ±3 deg
+  const mt = (mouseX - 0.5) * 0.06; // translate X ±0.03em
 
   return (
-    /* perspective + perspectiveOrigin en haut → effet "on ouvre vers l'avant" */
     <div style={{
-      position          : "relative",
-      width             : "1.2em",
-      height            : "0.98em",  // corps (0.86em) + onglet (0.12em)
-      perspective       : "6em",
-      perspectiveOrigin : "center top",
+      position    : "absolute",
+      width       : "calc(1.14em)",
+      height      : "0.72em",
+      left        : "0.03em",
+      bottom      : "0.08em",
+      background  : "#FAFAF7",
+      borderRadius: "0.025em 0.025em 0.02em 0.02em",
+      boxShadow   : "0 -0.01em 0.06em rgba(0,0,0,0.08)",
+      transform   : open
+        ? `rotateZ(${rotZ + mr * 0.3}deg) translateX(${tx + mt}em) translateY(-0.18em)`
+        : `rotateZ(0deg) translateX(0em) translateY(0em)`,
+      transition  : open
+        ? `transform 0.5s cubic-bezier(0.34,1.2,0.64,1) ${delay}ms`
+        : "transform 0.35s ease 0ms",
+    }}>
+      {/* Lignes décoratives "document" */}
+      {[0.18, 0.30, 0.42].map(t => (
+        <div key={t} style={{
+          position  : "absolute",
+          top       : `${t * 100}%`,
+          left      : "0.08em",
+          right     : "0.08em",
+          height    : "0.012em",
+          background: "rgba(35,35,35,0.08)",
+          borderRadius: "1px",
+        }} />
+      ))}
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Dossier Mac — toutes les dimensions en em
+   Structure : arrière-plan fixe + feuilles + couvercle complet
+───────────────────────────────────────────────────────────── */
+function MacFolder({ open, mouseX, mouseY }: {
+  open: boolean; mouseX: number; mouseY: number;
+}) {
+  // Dimensions (héritent du font-size parent clamp 4.5rem→18rem)
+  const FW   = "1.2em";   // largeur corps
+  const FH   = "0.86em";  // hauteur corps
+  const TH   = "0.13em";  // hauteur onglet
+  const TW   = "0.44em";  // largeur onglet
+
+  // Ombre portée du dossier
+  const shadow = open
+    ? "0 0.08em 0.3em rgba(0,0,0,0.22)"
+    : "0 0.04em 0.18em rgba(0,0,0,0.18)";
+
+  return (
+    /*
+      Container :
+        - hauteur = TH + FH (onglet + corps)
+        - perspective depuis le haut (point de fuite = charnière)
+        - overflow visible pour que les feuilles dépassent en haut
+    */
+    <div style={{
+      position         : "relative",
+      width            : FW,
+      height           : `calc(${TH} + ${FH})`,
+      perspective      : "7em",
+      perspectiveOrigin: "50% 0%",   // point de fuite au niveau de la charnière
+      overflow         : "visible",
     }}>
 
-      {/* ── Onglet ── */}
+      {/* ══ ARRIÈRE-PLAN fixe (tab + corps) ══ */}
+
+      {/* Onglet arrière */}
       <div style={{
         position    : "absolute",
         top         : 0,
         left        : 0,
-        width       : "0.45em",
-        height      : "calc(0.12em + 0.04em)",
-        background  : G_TAB,
+        width       : TW,
+        height      : `calc(${TH} + 0.04em)`,
+        background  : G_SHADE,
         borderRadius: "0.05em 0.05em 0 0",
         zIndex      : 1,
       }} />
 
-      {/* ── Corps arrière ── */}
+      {/* Corps arrière */}
       <div style={{
         position    : "absolute",
-        top         : "0.12em",
+        top         : TH,
         left        : 0,
-        width       : "1.2em",
-        height      : "0.86em",
+        width       : FW,
+        height      : FH,
         background  : G_DARK,
-        borderRadius: "0.02em 0.08em 0.08em 0.08em",
-        zIndex      : 2,
-      }} />
-
-      {/* ── Feuilles (les unes derrière les autres) ── */}
-      <div style={{
-        position    : "absolute",
-        top         : "0.12em",
-        left        : 0,
-        width       : "1.2em",
-        height      : "0.86em",
-        zIndex      : 3,
-        overflow    : "hidden",
-        borderRadius: "0.02em 0.08em 0.08em 0.08em",
+        borderRadius: "0.02em 0.09em 0.09em 0.09em",
+        zIndex      : 1,
+        boxShadow   : shadow,
+        transition  : "box-shadow 0.4s ease",
       }}>
-        {/* Feuille arrière */}
-        <div style={paper(-5, -0.08, 90, 0.06)} />
-        {/* Feuille milieu */}
-        <div style={paper(0, 0, 55, 0.03)} />
-        {/* Feuille avant */}
-        <div style={paper(5, 0.08, 90, 0)} />
+
+        {/* ── Feuilles à l'intérieur (dépassent en haut) ── */}
+        <Paper open={open} rotZ={-5} tx={-0.08} mouseX={mouseX} mouseY={mouseY} delay={80} />
+        <Paper open={open} rotZ={0}  tx={0}     mouseX={mouseX} mouseY={mouseY} delay={50} />
+        <Paper open={open} rotZ={5}  tx={0.08}  mouseX={mouseX} mouseY={mouseY} delay={80} />
       </div>
 
-      {/* ── Couverture — s'ouvre VERS L'AVANT (bas vers le spectateur) ── */}
+      {/* ══ COUVERCLE complet (onglet + corps) — s'ouvre vers l'arrière ══ */}
       <div style={{
-        position                : "absolute",
-        top                     : "0.12em",
-        left                    : 0,
-        width                   : "1.2em",
-        height                  : "0.86em",
-        zIndex                  : 4,
-        transformStyle          : "preserve-3d",
-        transformOrigin         : "top center",
-        /* rotateX positif → bas vient vers le spectateur */
-        transform               : open ? "rotateX(62deg)" : "rotateX(0deg)",
-        transition              : "transform 0.52s cubic-bezier(0.4,0,0.2,1)",
-        backfaceVisibility      : "hidden",
+        position              : "absolute",
+        top                   : 0,
+        left                  : 0,
+        width                 : FW,
+        height                : `calc(${TH} + ${FH})`,
+        zIndex                : 4,
+        transformStyle        : "preserve-3d",
+        transformOrigin       : "top center",   // charnière tout en haut
+        transform             : open ? "rotateX(-170deg)" : "rotateX(0deg)",
+        transition            : "transform 0.55s cubic-bezier(0.4,0,0.18,1)",
+        backfaceVisibility    : "hidden",
         WebkitBackfaceVisibility: "hidden",
       }}>
+
+        {/* Onglet du couvercle */}
         <div style={{
-          position      : "absolute",
-          inset         : 0,
-          background    : G,
-          borderRadius  : "0.02em 0.08em 0.08em 0.08em",
-          boxShadow     : "0 0.04em 0.15em rgba(0,0,0,0.15)",
-          display       : "flex",
-          alignItems    : "center",
-          justifyContent: "center",
-          overflow      : "hidden",
+          position              : "absolute",
+          top                   : 0,
+          left                  : 0,
+          width                 : TW,
+          height                : `calc(${TH} + 0.04em)`,
+          background            : G,
+          borderRadius          : "0.05em 0.05em 0 0",
+          backfaceVisibility    : "hidden",
+          WebkitBackfaceVisibility: "hidden",
+          filter                : "brightness(0.93)",
+        }} />
+
+        {/* Corps du couvercle */}
+        <div style={{
+          position              : "absolute",
+          top                   : TH,
+          left                  : 0,
+          width                 : FW,
+          height                : FH,
+          background            : G,
+          borderRadius          : "0.02em 0.09em 0.09em 0.09em",
+          backfaceVisibility    : "hidden",
+          WebkitBackfaceVisibility: "hidden",
+          overflow              : "hidden",
+          display               : "flex",
+          alignItems            : "center",
+          justifyContent        : "center",
         }}>
-          {/* Reflet */}
+
+          {/* Reflet diagonale */}
           <div style={{
             position     : "absolute",
             inset        : 0,
-            borderRadius : "inherit",
-            background   : "linear-gradient(130deg,rgba(255,255,255,0.22) 0%,transparent 55%)",
+            background   : "linear-gradient(135deg,rgba(255,255,255,0.22) 0%,transparent 50%)",
             pointerEvents: "none",
           }} />
 
-          {/* "portfolio" — fixe en haut-gauche */}
-          <span style={{
-            position     : "absolute",
-            top          : "0.12em",
-            left         : "0.14em",
-            fontFamily   : "var(--font-poppins)",
-            fontWeight   : 300,
-            fontSize     : "0.55rem",  // fixe, toujours lisible
-            letterSpacing: "0.18em",
-            textTransform: "uppercase",
-            color        : "rgba(255,255,255,0.5)",
-          }}>
-            portfolio
-          </span>
-
-          {/* "JADE L." gravé (em → scale avec le dossier) */}
+          {/* "JADE L." gravé — centre */}
           <span style={{
             fontFamily      : "var(--font-londrina-solid)",
             fontWeight      : 900,
-            fontSize        : "0.28em",
-            letterSpacing   : "0.06em",
+            fontSize        : "0.26em",
+            letterSpacing   : "0.07em",
             color           : "transparent",
-            WebkitTextStroke: "0.1em rgba(255,255,255,0.28)",
+            WebkitTextStroke: "0.09em rgba(255,255,255,0.32)",
             userSelect      : "none",
             position        : "relative",
             zIndex          : 1,
           }}>
             JADE L.
           </span>
+
+          {/* Badge "portfolio" — bas gauche */}
+          <div style={{
+            position     : "absolute",
+            bottom       : "0.09em",
+            left         : "0.12em",
+            display      : "flex",
+            alignItems   : "center",
+            padding      : "0.025em 0.07em",
+            border       : "0.012em solid rgba(255,255,255,0.45)",
+            borderRadius : "0.06em",
+            gap          : "0.03em",
+          }}>
+            <span style={{
+              fontFamily   : "var(--font-poppins)",
+              fontWeight   : 300,
+              fontSize     : "0.55rem",
+              letterSpacing: "0.12em",
+              textTransform: "uppercase",
+              color        : "rgba(255,255,255,0.7)",
+            }}>
+              portfolio
+            </span>
+          </div>
         </div>
       </div>
+
     </div>
   );
 }
@@ -182,8 +233,8 @@ export default function FolderSection() {
     if (!rowRef.current) return;
     const r = rowRef.current.getBoundingClientRect();
     setMouse({
-      x: (e.clientX - r.left)  / r.width,
-      y: (e.clientY - r.top)   / r.height,
+      x: (e.clientX - r.left) / r.width,
+      y: (e.clientY - r.top)  / r.height,
     });
   }, []);
 
@@ -198,28 +249,27 @@ export default function FolderSection() {
       padding       : "4rem 2rem",
     }}>
 
-      {/* Ligne 1 — Poppins */}
+      {/* Accroche */}
       <p style={{
         fontFamily   : "var(--font-poppins)",
         fontWeight   : 300,
-        fontSize     : "0.8rem",
-        letterSpacing: "0.22em",
+        fontSize     : "0.78rem",
+        letterSpacing: "0.25em",
         textTransform: "uppercase",
         color        : "rgba(35,35,35,0.45)",
-        marginBottom : "0.6rem",
+        marginBottom : "0.5rem",
       }}>
         Curieux ?… Voici mes
       </p>
 
-      {/* Ligne 2 — "pr" + [dossier] + "jets", même police/taille que le hero */}
+      {/* "pr [dossier] jets" — même taille que le hero */}
       <div
         ref={rowRef}
         style={{
-          /* font-size = même clamp que .hero-name */
           fontSize      : "clamp(4.5rem, 12vw, 18rem)",
           display       : "flex",
           alignItems    : "flex-end",
-          gap           : "0.06em",   /* espace entre le texte et le dossier */
+          gap           : "0.05em",
           cursor        : "pointer",
           userSelect    : "none",
           lineHeight    : 0.88,
@@ -229,22 +279,18 @@ export default function FolderSection() {
         onMouseLeave={() => { setOpen(false); setMouse({ x: 0.5, y: 0.5 }); }}
         onMouseMove={handleMouseMove}
       >
-        {/* "pr" */}
         <span style={{
-          fontFamily   : "var(--font-londrina-solid)",
-          fontWeight   : 900,
-          color        : "#232323",
-          /* pas de textTransform → minuscules naturelles */
+          fontFamily: "var(--font-londrina-solid)",
+          fontWeight: 900,
+          color     : "#232323",
         }}>
           pr
         </span>
 
-        {/* Dossier (remplace le "o") */}
         <div style={{ flexShrink: 0, alignSelf: "flex-end" }}>
           <MacFolder open={open} mouseX={mouse.x} mouseY={mouse.y} />
         </div>
 
-        {/* "jets" */}
         <span style={{
           fontFamily: "var(--font-londrina-solid)",
           fontWeight: 900,
@@ -253,6 +299,7 @@ export default function FolderSection() {
           jets
         </span>
       </div>
+
     </section>
   );
 }
