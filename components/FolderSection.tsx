@@ -3,8 +3,9 @@
 import { useState, useRef, useCallback } from "react";
 import { usePageTransition } from "@/context/TransitionContext";
 
-const BACK_COLOR  = "#1877C9";
-const FRONT_COLOR = "#64C8F0";
+/* ── Couleurs extraites du Figma ── */
+const BACK_COLOR  = "#0274BD";
+const FRONT_COLOR = "#4FC2F6";
 
 /* ── Arrière complet (corps + onglet) ── */
 const BACK_PATH = [
@@ -24,10 +25,7 @@ const BACK_PATH = [
   "Z",
 ].join(" ");
 
-/*
-  Onglet seul — rendu au z-index 4 (au-dessus des feuilles)
-  pour que l'arrière soit toujours visible
-*/
+/* ── Onglet seul (z-index 4, au-dessus des feuilles) ── */
 const TAB_PATH = [
   "M 8 0",
   "L 101 0",
@@ -41,41 +39,40 @@ const TAB_PATH = [
 ].join(" ");
 
 /*
-  Dimensions (em relatifs au font-size du parent = clamp(8rem…))
-  ─────────────────────────────────────────────────────────────
-  FOLDER_H = 0.65em  → hauteur ≈ x-height des minuscules
-  FOLDER_W = 0.78em  → ratio 302:252 × 0.65
-  TAB_H    = 0.10em  → onglet
-  FRONT_H  = 0.46em  → panneau avant (plus court que le corps arrière 0.55em)
-  FRONT_TOP = 0.19em → = FOLDER_H - FRONT_H
-*/
+  Feuilles — 3 couleurs Figma (rouge, gris, rose).
+  DOM index 0 = derrière (z-behind), index 2 = devant (z-on-top).
 
-/*
-  Feuilles en escalier (trapèze)
-  ─────────────────────────────
-  Chaque feuille a un `bottom` différent :
-    - feuille 0 (fond, derrière) : bottom le plus grand → position la plus haute
-    - feuille 2 (devant, dessus) : bottom le plus petit → position la plus basse
-  →  la feuille de fond dépasse le plus, créant l'escalier/trapèze
+  Positions calculées depuis le Figma (Variant2=repos, Default=survol) :
+    Paper 2 (rouge, devant) : top ≈ 0.090em — reste fixe au survol
+    Paper 1 (gris, milieu)  : top monte légèrement
+    Paper 0 (rose, fond)    : top monte le plus → escalier s'écarte
 
-  Au survol, les `bottom` augmentent → l'escalier devient plus prononcé.
-  Aucun translateY (feuilles ne sortent pas), aucun rotateZ (restent en ligne).
+  PAPER_BOTTOMS = folder_h(0.65) - paper_top - paper_height(0.48)
 */
 const PAPERS = [
-  { topColor: "#C41830", bodyColor: "#EFA8A8" }, // fond (DOM first → derrière)
-  { topColor: "#B83020", bodyColor: "#F5B4B4" }, // milieu
-  { topColor: "#D04828", bodyColor: "#FFC0B0" }, // devant (DOM last → dessus)
+  { color: "#E8A096" }, // fond  (DOM first → derrière)
+  { color: "#E8E9E9" }, // milieu
+  { color: "#FF544B" }, // devant (DOM last → dessus)
 ];
 
-// bottom de chaque feuille selon l'état (default / hover)
-const PAPER_BOTTOMS_DEFAULT = [0.08, 0.05, 0.02]; // feuilles peu visibles
-const PAPER_BOTTOMS_HOVER   = [0.13, 0.085, 0.04]; // escalier plus prononcé
+const PAPER_BOTTOMS_DEFAULT = [0.061, 0.068, 0.080]; // escalier serré au repos
+const PAPER_BOTTOMS_HOVER   = [0.041, 0.055, 0.080]; // fond descend, devant fixe
 
-function MacFolder({ open, mouseX }: { open: boolean; mouseX: number }) {
-  const fronAngle  = open ? -30 : -7;   // panneau avant : légèrement ouvert → plus ouvert
-  const paperAngle = open ? -18 : -5;   // feuilles pivotent dans le même sens
+/*
+  Proportions (em) — Figma 557×429 → CSS 0.78×0.65em
+  ─────────────────────────────────────────────────────
+  FRONT_TOP = 0.14em  (90.5 / 429 × 0.65)
+  FRONT_H   = 0.51em  (338  / 429 × 0.65)
+  PERSP     = 3.5em   → +6% width en haut à -26°, conforme au trapèze Figma
+  Repos : rotateX(-5°)  → panneau légèrement ouvert, quasi plat
+  Survol: rotateX(-26°) → trapèze ouvert, -5% height, +6% width en haut
+*/
 
-  const bottoms = open ? PAPER_BOTTOMS_HOVER : PAPER_BOTTOMS_DEFAULT;
+function MacFolder({ open }: { open: boolean }) {
+  const frontAngle = open ? -26 : -5;
+  const paperAngle = open ? -8  : -3;
+  const bottoms    = open ? PAPER_BOTTOMS_HOVER : PAPER_BOTTOMS_DEFAULT;
+  const ease       = open ? "ease-in" : "ease-out"; // conforme Figma
 
   return (
     <div style={{
@@ -85,7 +82,7 @@ function MacFolder({ open, mouseX }: { open: boolean; mouseX: number }) {
       overflow: "visible",
     }}>
 
-      {/* ── ARRIÈRE corps + onglet (z-index 1, sous les feuilles) ── */}
+      {/* ── ARRIÈRE (z 1) ── */}
       <svg
         width="0.78em" height="0.65em" viewBox="0 0 302 252"
         style={{ position:"absolute", top:0, left:0, zIndex:1, display:"block", overflow:"visible" }}
@@ -93,68 +90,56 @@ function MacFolder({ open, mouseX }: { open: boolean; mouseX: number }) {
         <path d={BACK_PATH} fill={BACK_COLOR} />
       </svg>
 
-      {/* ── FEUILLES (z-index 2) : escalier trapèze, pas de rotateZ ni translateY ── */}
-      {PAPERS.map(({ topColor, bodyColor }, i) => (
+      {/* ── FEUILLES (z 2) — escalier via bottom, pas de rotateZ ni translateY ── */}
+      {PAPERS.map(({ color }, i) => (
         <div key={i} style={{
           position       : "absolute",
           left           : "0.04em",
+          right          : "0.04em",
           bottom         : `${bottoms[i]}em`,
-          width          : "0.70em",
           height         : "0.48em",
-          borderRadius   : "0.02em 0.02em 0.015em 0.015em",
-          overflow       : "hidden",
+          borderRadius   : "0.015em 0.015em 0.01em 0.01em",
+          background     : color,
+          outline        : "0.004em solid rgba(255,255,255,0.7)",
           zIndex         : 2,
           transformOrigin: "bottom center",
-          transform      : `perspective(0.9em) rotateX(${paperAngle}deg)`,
-          transition     : [
-            "bottom 0.5s cubic-bezier(0.4,0,0.18,1)",
-            "transform 0.5s cubic-bezier(0.4,0,0.18,1)",
-          ].join(", "),
-        }}>
-          <div style={{ position:"absolute", top:0, left:0, right:0, height:"0.013em", background:"#1A2450" }} />
-          <div style={{ position:"absolute", top:"0.013em", left:0, right:0, height:"0.035em", background:topColor }} />
-          <div style={{ position:"absolute", top:"0.048em", left:0, right:0, height:"0.004em", background:"rgba(255,255,255,0.8)" }} />
-          <div style={{ position:"absolute", top:"0.052em", left:0, right:0, bottom:0, background:bodyColor }} />
-        </div>
+          transform      : `perspective(3.5em) rotateX(${paperAngle}deg)`,
+          transition     : `bottom 0.3s ${ease}, transform 0.3s ${ease}`,
+        }} />
       ))}
 
-      {/* ── AVANT (z-index 3) : pivot en bas, haut tombe vers l'avant ──
-           Effet naturel du perspective+rotateX :
-           - top edge apparaît plus large (perspective projection)
-           - hauteur apparaît réduite (foreshortening)
-           → donne l'effet trapèze ouverture
-      ── */}
+      {/* ── AVANT (z 3) — perspective(3.5em) rotateX → trapèze naturel ── */}
       <div style={{
         position       : "absolute",
-        top            : "0.19em",
+        top            : "0.14em",
         left           : 0,
         width          : "0.78em",
-        height         : "0.46em",
+        height         : "0.51em",
         background     : FRONT_COLOR,
-        borderRadius   : "0.05em",
+        borderRadius   : "0.03em",
         zIndex         : 3,
         transformOrigin: "bottom center",
-        transform      : `perspective(0.9em) rotateX(${fronAngle}deg)`,
-        transition     : "transform 0.5s cubic-bezier(0.4,0,0.18,1)",
+        transform      : `perspective(3.5em) rotateX(${frontAngle}deg)`,
+        transition     : `transform 0.3s ${ease}`,
         overflow       : "hidden",
       }}>
         <div style={{
-          position:"absolute", inset:0,
-          background:"linear-gradient(135deg,rgba(255,255,255,0.18) 0%,transparent 55%)",
-          pointerEvents:"none",
+          position     : "absolute",
+          inset        : 0,
+          background   : "linear-gradient(135deg,rgba(255,255,255,0.18) 0%,transparent 55%)",
+          pointerEvents: "none",
         }} />
       </div>
 
-      {/* ── ONGLET (z-index 4) : couche de l'onglet au-dessus des feuilles ─────
-           Garantit que le fond bleu foncé reste visible même quand les feuilles
-           dépassent dans la zone de l'onglet.
-      ── */}
+      {/* ── ONGLET (z 4, au-dessus des feuilles) ── */}
       <svg
         width="0.78em" height="0.65em" viewBox="0 0 302 252"
         style={{
-          position:"absolute", top:0, left:0,
-          zIndex:4, display:"block",
-          pointerEvents:"none", overflow:"visible",
+          position     : "absolute", top:0, left:0,
+          zIndex       : 4,
+          display      : "block",
+          pointerEvents: "none",
+          overflow     : "visible",
         }}
       >
         <path d={TAB_PATH} fill={BACK_COLOR} />
@@ -221,7 +206,7 @@ export default function FolderSection() {
         </span>
 
         <div style={{ flexShrink:0, alignSelf:"flex-end" }}>
-          <MacFolder open={open} mouseX={mouse.x} />
+          <MacFolder open={open} />
         </div>
 
         <span style={{ fontFamily:"var(--font-londrina-solid)", fontWeight:900, color:"#232323" }}>
