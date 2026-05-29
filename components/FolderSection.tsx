@@ -15,9 +15,9 @@ const FRONT_COLOR = "#64C8F0"; // bleu clair (avant)
 const BACK_PATH = [
   "M 8 0",
   "L 101 0",
-  "Q 115 0 115 14",    // coin haut-droit de l'onglet (r≈14)
-  "L 115 28",
-  "Q 105 40 130 40",   // courbe concave onglet → corps (dip vers la gauche)
+  "Q 115 0 115 12",    // coin haut-droit de l'onglet (r≈12)
+  "L 115 30",
+  "Q 115 40 124 40",   // transition douce onglet → corps (concave très subtile)
   "L 282 40",
   "Q 302 40 302 60",   // coin haut-droit du corps (r≈20)
   "L 302 232",
@@ -133,9 +133,9 @@ function MacFolder({ open, mouseX, mouseY }: {
         background    : FRONT_COLOR,
         borderRadius  : "0.06em",
         zIndex        : 3,
-        transformOrigin: "top center",
+        transformOrigin: "bottom center",
         transform     : open
-          ? "perspective(6em) rotateX(10deg)"
+          ? "perspective(6em) rotateX(-22deg)"
           : "perspective(6em) rotateX(0deg)",
         transition    : "transform 0.45s cubic-bezier(0.4,0,0.18,1)",
         overflow      : "hidden",
@@ -150,44 +150,6 @@ function MacFolder({ open, mouseX, mouseY }: {
           background   : "linear-gradient(135deg,rgba(255,255,255,0.18) 0%,transparent 55%)",
           pointerEvents: "none",
         }} />
-
-        {/* "JADE L." gravé */}
-        <span style={{
-          fontFamily      : "var(--font-londrina-solid)",
-          fontWeight      : 900,
-          fontSize        : "0.26em",
-          letterSpacing   : "0.07em",
-          color           : "transparent",
-          WebkitTextStroke: "0.09em rgba(255,255,255,0.25)",
-          userSelect      : "none",
-          position        : "relative",
-          zIndex          : 1,
-        }}>
-          JADE L.
-        </span>
-
-        {/* Badge "portfolio" */}
-        <div style={{
-          position    : "absolute",
-          bottom      : "0.09em",
-          left        : "0.12em",
-          display     : "flex",
-          alignItems  : "center",
-          padding     : "0.025em 0.07em",
-          border      : "0.012em solid rgba(255,255,255,0.38)",
-          borderRadius: "0.06em",
-        }}>
-          <span style={{
-            fontFamily   : "var(--font-poppins)",
-            fontWeight   : 300,
-            fontSize     : "0.55rem",
-            letterSpacing: "0.12em",
-            textTransform: "uppercase",
-            color        : "rgba(255,255,255,0.60)",
-          }}>
-            portfolio
-          </span>
-        </div>
 
       </div>
     </div>
@@ -238,7 +200,7 @@ export default function FolderSection() {
       <div
         ref={rowRef}
         style={{
-          fontSize  : "clamp(6rem, 16vw, 22rem)",
+          fontSize  : "clamp(8rem, 22vw, 30rem)",
           display   : "flex",
           alignItems: "flex-end",
           gap       : "0.05em",
