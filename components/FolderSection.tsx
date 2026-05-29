@@ -39,32 +39,37 @@ const TAB_PATH = [
 ].join(" ");
 
 /*
-  3 feuilles Figma (rouge, gris, rose).
-  DOM index 0 = derrière, index 2 = devant.
+  3 feuilles (rose, gris, rouge).
+  DOM index 0 = derrière (z-behind), index 2 = devant (z-on-top).
 
-  Positionnées via `bottom` depuis le bas du conteneur clip.
-  Les bottom values sont mesurées depuis le bas du dossier (≡ bas du clip-container).
-  paper_top_dans_clip = clip_height(0.547em) - paper_height(0.48em) - bottom
-  paper_top_absolu    = tab_height(0.103em) + paper_top_dans_clip
+  RÈGLE : pour que l'escalier soit visible, le papier z-behind (index 0)
+  doit être positionné PLUS HAUT que le papier z-top (index 2).
+  Ainsi :
+    - index 0 (rose, z-behind)  : le plus haut → son bord supérieur dépasse index 1 et 2
+    - index 1 (gris, z-middle)  : intermédiaire
+    - index 2 (rouge, z-on-top) : le plus bas → grande bande visible jusqu'au panneau avant
 
-  Repos  (avant ≈ y=0.143em depuis haut) :
-    index2 (rouge, devant) : clip_top=-0.023 → clippé → visible 0.103→0.143em = 0.040em ✓
-    index1 (gris, milieu)  : clip_top= 0.002 → visible 0.105→0.143em = 0.038em ✓
-    index0 (rose, fond)    : clip_top= 0.027 → visible 0.130→0.143em = 0.013em (discret) ✓
+  paper_top_absolu = max(tab_h=0.103, 0.103 + clip_h(0.547) - paper_h(0.48) - bottom)
+                   = max(0.103, 0.170 - bottom)
 
-  Survol (avant ≈ y=0.219em à -40°) :
-    index2 : visible 0.103→0.219em = 0.116em  ✓ très visible
-    index1 : visible 0.135→0.219em = 0.084em  ✓ visible
-    index0 : visible 0.165→0.219em = 0.054em  ✓ visible → escalier net
+  Repos (avant ≈ y=0.143em) — espacement égal 0.013em par feuille :
+    index0 : bottom=0.090 → top=0.103em (clippé)  visible: 0.103→0.116 = 0.013em
+    index1 : bottom=0.054 → top=0.116em            visible: 0.116→0.129 = 0.013em
+    index2 : bottom=0.041 → top=0.129em            visible: 0.129→0.143 = 0.014em ← plus grand
+
+  Survol (avant ≈ y=0.219em à -40°) — espacement ~0.030em :
+    index0 : bottom=0.090 → top=0.103em (clippé)  visible: 0.103→0.133 = 0.030em
+    index1 : bottom=0.037 → top=0.133em            visible: 0.133→0.163 = 0.030em
+    index2 : bottom=0.007 → top=0.163em            visible: 0.163→0.219 = 0.056em ← plus grand
 */
 const PAPERS = [
-  { color: "#E8A096" }, // fond  (DOM first → derrière)
+  { color: "#E8A096" }, // fond  (DOM first → derrière, positionné le plus haut)
   { color: "#E8E9E9" }, // milieu
-  { color: "#FF544B" }, // devant (DOM last → dessus)
+  { color: "#FF544B" }, // devant (DOM last → dessus, positionné le plus bas)
 ];
 
-const PAPER_BOTTOMS_DEFAULT = [0.040, 0.065, 0.090]; // escalier discret au repos
-const PAPER_BOTTOMS_HOVER   = [0.005, 0.035, 0.090]; // escalier prononcé au survol
+const PAPER_BOTTOMS_DEFAULT = [0.090, 0.054, 0.041]; // fond=haut, devant=bas
+const PAPER_BOTTOMS_HOVER   = [0.090, 0.037, 0.007]; // fond reste, devant descend
 
 /*
   Dimensions clés (em = font-size hérité ≈ clamp(8rem,22vw,30rem)) :
@@ -87,7 +92,7 @@ const PAPER_BOTTOMS_HOVER   = [0.005, 0.035, 0.090]; // escalier prononcé au su
 
 function MacFolder({ open }: { open: boolean }) {
   const frontAngle = open ? -40 : -5;
-  const paperAngle = open ? -22 : -4;
+  const paperAngle = open ? -12 : -3;
   const bottoms    = open ? PAPER_BOTTOMS_HOVER : PAPER_BOTTOMS_DEFAULT;
   const ease       = open ? "ease-in" : "ease-out";
 
