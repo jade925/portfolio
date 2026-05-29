@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback } from "react";
 import { usePageTransition } from "@/context/TransitionContext";
 
-/* ── Couleurs extraites du Figma ── */
+/* ── Couleurs Figma ── */
 const BACK_COLOR  = "#0274BD";
 const FRONT_COLOR = "#4FC2F6";
 
@@ -25,7 +25,7 @@ const BACK_PATH = [
   "Z",
 ].join(" ");
 
-/* ── Onglet seul (z-index 4, au-dessus des feuilles) ── */
+/* ── Onglet seul (z-index 4) ── */
 const TAB_PATH = [
   "M 8 0",
   "L 101 0",
@@ -39,15 +39,23 @@ const TAB_PATH = [
 ].join(" ");
 
 /*
-  Feuilles — 3 couleurs Figma (rouge, gris, rose).
-  DOM index 0 = derrière (z-behind), index 2 = devant (z-on-top).
+  3 feuilles Figma (rouge, gris, rose).
+  DOM index 0 = derrière, index 2 = devant.
 
-  Positions calculées depuis le Figma (Variant2=repos, Default=survol) :
-    Paper 2 (rouge, devant) : top ≈ 0.090em — reste fixe au survol
-    Paper 1 (gris, milieu)  : top monte légèrement
-    Paper 0 (rose, fond)    : top monte le plus → escalier s'écarte
+  Positionnées via `bottom` depuis le bas du conteneur clip.
+  Les bottom values sont mesurées depuis le bas du dossier (≡ bas du clip-container).
+  paper_top_dans_clip = clip_height(0.547em) - paper_height(0.48em) - bottom
+  paper_top_absolu    = tab_height(0.103em) + paper_top_dans_clip
 
-  PAPER_BOTTOMS = folder_h(0.65) - paper_top - paper_height(0.48)
+  Repos  (avant ≈ y=0.143em depuis haut) :
+    index2 (rouge, devant) : clip_top=-0.023 → clippé → visible 0.103→0.143em = 0.040em ✓
+    index1 (gris, milieu)  : clip_top= 0.002 → visible 0.105→0.143em = 0.038em ✓
+    index0 (rose, fond)    : clip_top= 0.027 → visible 0.130→0.143em = 0.013em (discret) ✓
+
+  Survol (avant ≈ y=0.219em à -40°) :
+    index2 : visible 0.103→0.219em = 0.116em  ✓ très visible
+    index1 : visible 0.135→0.219em = 0.084em  ✓ visible
+    index0 : visible 0.165→0.219em = 0.054em  ✓ visible → escalier net
 */
 const PAPERS = [
   { color: "#E8A096" }, // fond  (DOM first → derrière)
@@ -55,24 +63,33 @@ const PAPERS = [
   { color: "#FF544B" }, // devant (DOM last → dessus)
 ];
 
-const PAPER_BOTTOMS_DEFAULT = [0.061, 0.068, 0.080]; // escalier serré au repos
-const PAPER_BOTTOMS_HOVER   = [0.041, 0.055, 0.080]; // fond descend, devant fixe
+const PAPER_BOTTOMS_DEFAULT = [0.040, 0.065, 0.090]; // escalier discret au repos
+const PAPER_BOTTOMS_HOVER   = [0.005, 0.035, 0.090]; // escalier prononcé au survol
 
 /*
-  Proportions (em) — Figma 557×429 → CSS 0.78×0.65em
-  ─────────────────────────────────────────────────────
-  FRONT_TOP = 0.14em  (90.5 / 429 × 0.65)
-  FRONT_H   = 0.51em  (338  / 429 × 0.65)
-  PERSP     = 3.5em   → +6% width en haut à -26°, conforme au trapèze Figma
-  Repos : rotateX(-5°)  → panneau légèrement ouvert, quasi plat
-  Survol: rotateX(-26°) → trapèze ouvert, -5% height, +6% width en haut
+  Dimensions clés (em = font-size hérité ≈ clamp(8rem,22vw,30rem)) :
+  ─────────────────────────────────────────────────────────────────────
+  FOLDER_H    = 0.65em
+  FOLDER_W    = 0.78em
+  TAB_H       = 0.103em  (40/252 × 0.65 — hauteur de l'onglet)
+  CLIP_H      = 0.547em  (0.65 - 0.103)
+  FRONT_TOP   = 0.14em   (90.5/429 × 0.65 — Figma)
+  FRONT_H     = 0.51em   (338/429 × 0.65 — Figma)
+  PAPER_H     = 0.48em
+  PERSP       = 3.5em    → trapèze +6-11% width en haut (Figma -26°…-40°)
+
+  Angles :
+    repos  → avant -5°,  feuilles -4°  (quasi plat, Figma Variant2)
+    survol → avant -40°, feuilles -22° (ouverture prononcée, user request)
+
+  Easing Figma :  ease-in à l'entrée, ease-out à la sortie, 0.3s
 */
 
 function MacFolder({ open }: { open: boolean }) {
-  const frontAngle = open ? -26 : -5;
-  const paperAngle = open ? -8  : -3;
+  const frontAngle = open ? -40 : -5;
+  const paperAngle = open ? -22 : -4;
   const bottoms    = open ? PAPER_BOTTOMS_HOVER : PAPER_BOTTOMS_DEFAULT;
-  const ease       = open ? "ease-in" : "ease-out"; // conforme Figma
+  const ease       = open ? "ease-in" : "ease-out";
 
   return (
     <div style={{
@@ -90,25 +107,39 @@ function MacFolder({ open }: { open: boolean }) {
         <path d={BACK_PATH} fill={BACK_COLOR} />
       </svg>
 
-      {/* ── FEUILLES (z 2) — escalier via bottom, pas de rotateZ ni translateY ── */}
-      {PAPERS.map(({ color }, i) => (
-        <div key={i} style={{
-          position       : "absolute",
-          left           : "0.04em",
-          right          : "0.04em",
-          bottom         : `${bottoms[i]}em`,
-          height         : "0.48em",
-          borderRadius   : "0.015em 0.015em 0.01em 0.01em",
-          background     : color,
-          outline        : "0.004em solid rgba(255,255,255,0.7)",
-          zIndex         : 2,
-          transformOrigin: "bottom center",
-          transform      : `perspective(3.5em) rotateX(${paperAngle}deg)`,
-          transition     : `bottom 0.3s ${ease}, transform 0.3s ${ease}`,
-        }} />
-      ))}
+      {/* ── CLIP CONTAINER (z 2) — confine les feuilles au corps du dossier ──
+           Commence sous l'onglet (top = 0.103em) et va jusqu'en bas.
+           overflow:hidden empêche les feuilles de traverser l'arrière.
+           border-radius bas = coins du dossier (20/252 × 0.65 ≈ 0.052em).
+      ── */}
+      <div style={{
+        position    : "absolute",
+        top         : "0.103em",
+        left        : 0,
+        right       : 0,
+        bottom      : 0,
+        overflow    : "hidden",
+        zIndex      : 2,
+        borderRadius: "0 0 0.052em 0.052em",
+      }}>
+        {PAPERS.map(({ color }, i) => (
+          <div key={i} style={{
+            position       : "absolute",
+            left           : "0.04em",
+            right          : "0.04em",
+            bottom         : `${bottoms[i]}em`,
+            height         : "0.48em",
+            borderRadius   : "0.015em 0.015em 0.01em 0.01em",
+            background     : color,
+            outline        : "0.004em solid rgba(255,255,255,0.7)",
+            transformOrigin: "bottom center",
+            transform      : `perspective(3.5em) rotateX(${paperAngle}deg)`,
+            transition     : `bottom 0.3s ${ease}, transform 0.3s ${ease}`,
+          }} />
+        ))}
+      </div>
 
-      {/* ── AVANT (z 3) — perspective(3.5em) rotateX → trapèze naturel ── */}
+      {/* ── AVANT (z 3) — trapèze perspective natif ── */}
       <div style={{
         position       : "absolute",
         top            : "0.14em",
