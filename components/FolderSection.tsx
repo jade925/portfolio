@@ -68,8 +68,8 @@ const PAPERS = [
   { color: "#FF544B" }, // devant (DOM last → dessus, positionné le plus bas)
 ];
 
-const PAPER_BOTTOMS_DEFAULT = [0.090, 0.054, 0.041]; // fond=haut, devant=bas
-const PAPER_BOTTOMS_HOVER   = [0.090, 0.037, 0.007]; // fond reste, devant descend
+const PAPER_BOTTOMS_DEFAULT = [0.147, 0.134, 0.121]; // fond=haut, devant=bas
+const PAPER_BOTTOMS_HOVER   = [0.147, 0.107, 0.067]; // fond reste, devant descend
 
 /*
   Dimensions clés (em = font-size hérité ≈ clamp(8rem,22vw,30rem)) :
@@ -133,13 +133,13 @@ function MacFolder({ open }: { open: boolean }) {
             left           : "0.04em",
             right          : "0.04em",
             bottom         : `${bottoms[i]}em`,
-            height         : "0.48em",
+            height         : "0.40em",
             borderRadius   : "0.015em 0.015em 0.01em 0.01em",
             background     : color,
             outline        : "0.004em solid rgba(255,255,255,0.7)",
             transformOrigin: "bottom center",
             transform      : `perspective(3.5em) rotateX(${paperAngle}deg)`,
-            transition     : `bottom 0.3s ${ease}, transform 0.3s ${ease}`,
+            transition     : `bottom 0.18s ${ease}, transform 0.18s ${ease}`,
           }} />
         ))}
       </div>
@@ -156,7 +156,7 @@ function MacFolder({ open }: { open: boolean }) {
         zIndex         : 3,
         transformOrigin: "bottom center",
         transform      : `perspective(3.5em) rotateX(${frontAngle}deg)`,
-        transition     : `transform 0.3s ${ease}`,
+        transition     : `transform 0.18s ${ease}`,
         overflow       : "hidden",
       }}>
         <div style={{
@@ -241,7 +241,7 @@ export default function FolderSection() {
           Pr
         </span>
 
-        <div style={{ flexShrink:0, alignSelf:"flex-end" }}>
+        <div style={{ flexShrink:0, alignSelf:"flex-end", pointerEvents:"none" }}>
           <MacFolder open={open} />
         </div>
 
