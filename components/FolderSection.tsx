@@ -222,7 +222,7 @@ export default function FolderSection() {
           <MacFolder open={open} />
         </div>
 
-        <span style={{ fontFamily:"var(--font-londrina-solid)", fontWeight:900, color:"#232323", position:"relative", zIndex:5 }}>
+        <span style={{ fontFamily:"var(--font-londrina-solid)", fontWeight:900, color:"#232323", position:"relative", zIndex:5, marginLeft:"0.06em" }}>
           jets
         </span>
       </div>
