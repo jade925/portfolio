@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { usePageTransition } from "@/context/TransitionContext";
 
-/* ── Couleurs Figma ── */
-const BACK_COLOR  = "#0274BD";
-const FRONT_COLOR = "#4FC2F6";
+/* ── Couleurs charte (sage #A7C957) ── */
+const BACK_COLOR  = "#7A9E35"; // sage foncé → dos + onglet
+const FRONT_COLOR = "#A7C957"; // sage exact → panneau avant
 
 /* ── Arrière complet (corps + onglet) ── */
 const BACK_PATH = [
@@ -46,9 +46,9 @@ const TAB_PATH = [
   doit être positionné PLUS HAUT que le papier z-top (index 2).
 */
 const PAPERS = [
-  { color: "#E8A096" }, // fond  (DOM first → derrière, positionné le plus haut)
-  { color: "#E8E9E9" }, // milieu
-  { color: "#FF544B" }, // devant (DOM last → dessus, positionné le plus bas)
+  { color: "#5C7A26" }, // fond   — vert olive profond
+  { color: "#A7C957" }, // milieu — sage (même que le devant du dossier)
+  { color: "#D4E89A" }, // devant — vert clair/citron
 ];
 
 // Feuilles abaissées pour laisser 0.05em de bleu foncé visible au-dessus (ouvert)
@@ -202,7 +202,7 @@ export default function FolderSection() {
           fontSize  : "clamp(8rem, 22vw, 30rem)",
           display   : "flex",
           alignItems: "flex-end",
-          gap       : "0.04em",
+          gap       : "0.08em",
           cursor    : "pointer",
           userSelect: "none",
           lineHeight: 0.88,
