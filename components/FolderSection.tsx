@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState } from "react";
 import { usePageTransition } from "@/context/TransitionContext";
 
 /* ── Couleurs Figma ── */
@@ -44,23 +44,6 @@ const TAB_PATH = [
 
   RÈGLE : pour que l'escalier soit visible, le papier z-behind (index 0)
   doit être positionné PLUS HAUT que le papier z-top (index 2).
-  Ainsi :
-    - index 0 (rose, z-behind)  : le plus haut → son bord supérieur dépasse index 1 et 2
-    - index 1 (gris, z-middle)  : intermédiaire
-    - index 2 (rouge, z-on-top) : le plus bas → grande bande visible jusqu'au panneau avant
-
-  paper_top_absolu = max(tab_h=0.103, 0.103 + clip_h(0.547) - paper_h(0.48) - bottom)
-                   = max(0.103, 0.170 - bottom)
-
-  Repos (avant ≈ y=0.143em) — espacement égal 0.013em par feuille :
-    index0 : bottom=0.090 → top=0.103em (clippé)  visible: 0.103→0.116 = 0.013em
-    index1 : bottom=0.054 → top=0.116em            visible: 0.116→0.129 = 0.013em
-    index2 : bottom=0.041 → top=0.129em            visible: 0.129→0.143 = 0.014em ← plus grand
-
-  Survol (avant ≈ y=0.219em à -40°) — espacement ~0.030em :
-    index0 : bottom=0.090 → top=0.103em (clippé)  visible: 0.103→0.133 = 0.030em
-    index1 : bottom=0.037 → top=0.133em            visible: 0.133→0.163 = 0.030em
-    index2 : bottom=0.007 → top=0.163em            visible: 0.163→0.219 = 0.056em ← plus grand
 */
 const PAPERS = [
   { color: "#E8A096" }, // fond  (DOM first → derrière, positionné le plus haut)
@@ -78,16 +61,16 @@ const PAPER_BOTTOMS_HOVER   = [0.147, 0.107, 0.067]; // fond reste, devant desce
   FOLDER_W    = 0.78em
   TAB_H       = 0.103em  (40/252 × 0.65 — hauteur de l'onglet)
   CLIP_H      = 0.547em  (0.65 - 0.103)
-  FRONT_TOP   = 0.14em   (90.5/429 × 0.65 — Figma)
-  FRONT_H     = 0.51em   (338/429 × 0.65 — Figma)
-  PAPER_H     = 0.48em
-  PERSP       = 3.5em    → trapèze +6-11% width en haut (Figma -26°…-40°)
+  FRONT_TOP   = 0.14em
+  FRONT_H     = 0.44em   → pivot à 0.58em, laisse 0.07em de bleu foncé visible en bas
+  PAPER_H     = 0.40em
+  PERSP       = 3.5em    → trapèze +6-11% width en haut
 
   Angles :
-    repos  → avant -5°,  feuilles -4°  (quasi plat, Figma Variant2)
-    survol → avant -40°, feuilles -22° (ouverture prononcée, user request)
+    repos  → avant -5°,  feuilles -3°
+    survol → avant -40°, feuilles -12°
 
-  Easing Figma :  ease-in à l'entrée, ease-out à la sortie, 0.3s
+  Easing : ease-in à l'entrée, ease-out à la sortie, 0.18s
 */
 
 function MacFolder({ open }: { open: boolean }) {
@@ -107,16 +90,12 @@ function MacFolder({ open }: { open: boolean }) {
       {/* ── ARRIÈRE (z 1) ── */}
       <svg
         width="0.78em" height="0.65em" viewBox="0 0 302 252"
-        style={{ position:"absolute", top:0, left:0, zIndex:1, display:"block", overflow:"visible" }}
+        style={{ position:"absolute", top:0, left:0, zIndex:1, display:"block", overflow:"visible", pointerEvents:"none" }}
       >
         <path d={BACK_PATH} fill={BACK_COLOR} />
       </svg>
 
-      {/* ── CLIP CONTAINER (z 2) — confine les feuilles au corps du dossier ──
-           Commence sous l'onglet (top = 0.103em) et va jusqu'en bas.
-           overflow:hidden empêche les feuilles de traverser l'arrière.
-           border-radius bas = coins du dossier (20/252 × 0.65 ≈ 0.052em).
-      ── */}
+      {/* ── CLIP CONTAINER (z 2) — confine les feuilles au corps du dossier ── */}
       <div style={{
         position    : "absolute",
         top         : "0.103em",
@@ -126,6 +105,7 @@ function MacFolder({ open }: { open: boolean }) {
         overflow    : "hidden",
         zIndex      : 2,
         borderRadius: "0 0 0.052em 0.052em",
+        pointerEvents: "none",
       }}>
         {PAPERS.map(({ color }, i) => (
           <div key={i} style={{
@@ -144,13 +124,13 @@ function MacFolder({ open }: { open: boolean }) {
         ))}
       </div>
 
-      {/* ── AVANT (z 3) — trapèze perspective natif ── */}
+      {/* ── AVANT (z 3) — pivot à 0.58em, 0.07em de bleu foncé visible en bas ── */}
       <div style={{
         position       : "absolute",
         top            : "0.14em",
         left           : 0,
         width          : "0.78em",
-        height         : "0.51em",
+        height         : "0.44em",
         background     : FRONT_COLOR,
         borderRadius   : "0.03em",
         zIndex         : 3,
@@ -158,6 +138,7 @@ function MacFolder({ open }: { open: boolean }) {
         transform      : `perspective(3.5em) rotateX(${frontAngle}deg)`,
         transition     : `transform 0.18s ${ease}`,
         overflow       : "hidden",
+        pointerEvents  : "none",
       }}>
         <div style={{
           position     : "absolute",
@@ -187,16 +168,8 @@ function MacFolder({ open }: { open: boolean }) {
 
 /* ── Section ── */
 export default function FolderSection() {
-  const [open,  setOpen]  = useState(false);
-  const [mouse, setMouse] = useState({ x: 0.5, y: 0.5 });
-  const rowRef            = useRef<HTMLDivElement>(null);
-  const { navigate }      = usePageTransition();
-
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!rowRef.current) return;
-    const r = rowRef.current.getBoundingClientRect();
-    setMouse({ x: (e.clientX - r.left) / r.width, y: (e.clientY - r.top) / r.height });
-  }, []);
+  const [open, setOpen] = useState(false);
+  const { navigate }    = usePageTransition();
 
   return (
     <section style={{
@@ -222,7 +195,6 @@ export default function FolderSection() {
       </p>
 
       <div
-        ref={rowRef}
         style={{
           fontSize  : "clamp(8rem, 22vw, 30rem)",
           display   : "flex",
@@ -233,15 +205,17 @@ export default function FolderSection() {
           lineHeight: 0.88,
         }}
         onClick={() => navigate("/projects")}
-        onMouseEnter={() => setOpen(true)}
-        onMouseLeave={() => { setOpen(false); setMouse({ x: 0.5, y: 0.5 }); }}
-        onMouseMove={handleMouseMove}
       >
         <span style={{ fontFamily:"var(--font-londrina-solid)", fontWeight:900, color:"#232323" }}>
           Pr
         </span>
 
-        <div style={{ flexShrink:0, alignSelf:"flex-end", pointerEvents:"none" }}>
+        {/* Hover uniquement sur le dossier — tous les enfants ont pointerEvents:none */}
+        <div
+          style={{ flexShrink:0, alignSelf:"flex-end" }}
+          onMouseEnter={() => setOpen(true)}
+          onMouseLeave={() => setOpen(false)}
+        >
           <MacFolder open={open} />
         </div>
 
