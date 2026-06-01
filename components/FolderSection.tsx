@@ -46,9 +46,9 @@ const TAB_PATH = [
   doit être positionné PLUS HAUT que le papier z-top (index 2).
 */
 const PAPERS = [
-  { color: "#5C7A26" }, // fond   — vert olive profond
-  { color: "#A7C957" }, // milieu — sage (même que le devant du dossier)
-  { color: "#D4E89A" }, // devant — vert clair/citron
+  { color: "#BFD96B" }, // fond   — sage clair (famille dossier, mais plus pâle)
+  { color: "#EDE8D5" }, // milieu — parchemin chaud (neutre, crème chaude)
+  { color: "#F5F2ED" }, // devant — crème exacte de la charte (fond de page)
 ];
 
 // Feuilles abaissées pour laisser 0.05em de bleu foncé visible au-dessus (ouvert)
@@ -202,14 +202,14 @@ export default function FolderSection() {
           fontSize  : "clamp(8rem, 22vw, 30rem)",
           display   : "flex",
           alignItems: "flex-end",
-          gap       : "0.08em",
+          gap       : "0.14em",
           cursor    : "pointer",
           userSelect: "none",
           lineHeight: 0.88,
         }}
         onClick={() => navigate("/projects")}
       >
-        <span style={{ fontFamily:"var(--font-londrina-solid)", fontWeight:900, color:"#232323" }}>
+        <span style={{ fontFamily:"var(--font-londrina-solid)", fontWeight:900, color:"#232323", position:"relative", zIndex:5 }}>
           Pr
         </span>
 
@@ -222,7 +222,7 @@ export default function FolderSection() {
           <MacFolder open={open} />
         </div>
 
-        <span style={{ fontFamily:"var(--font-londrina-solid)", fontWeight:900, color:"#232323" }}>
+        <span style={{ fontFamily:"var(--font-londrina-solid)", fontWeight:900, color:"#232323", position:"relative", zIndex:5 }}>
           jets
         </span>
       </div>
