@@ -51,8 +51,11 @@ const PAPERS = [
   { color: "#FF544B" }, // devant (DOM last → dessus, positionné le plus bas)
 ];
 
-const PAPER_BOTTOMS_DEFAULT = [0.147, 0.134, 0.121]; // fond=haut, devant=bas
-const PAPER_BOTTOMS_HOVER   = [0.147, 0.107, 0.067]; // fond reste, devant descend
+// Feuilles abaissées pour laisser 0.05em de bleu foncé visible au-dessus (ouvert)
+// paper_top_in_clip = 0.547 - 0.40 - bottom = 0.147 - bottom
+// Pour top_in_clip = 0.05em → bottom = 0.097
+const PAPER_BOTTOMS_DEFAULT = [0.097, 0.084, 0.071]; // fond=haut, devant=bas
+const PAPER_BOTTOMS_HOVER   = [0.097, 0.057, 0.017]; // fond reste, devant descend
 
 /*
   Dimensions clés (em = font-size hérité ≈ clamp(8rem,22vw,30rem)) :
@@ -130,7 +133,7 @@ function MacFolder({ open }: { open: boolean }) {
         top            : "0.14em",
         left           : 0,
         width          : "0.78em",
-        height         : "0.44em",
+        height         : "0.51em",
         background     : FRONT_COLOR,
         borderRadius   : "0.03em",
         zIndex         : 3,
