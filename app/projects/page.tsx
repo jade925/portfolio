@@ -1,178 +1,253 @@
-import Navigation from "@/components/Navigation";
-import Link from "next/link";
+"use client";
 
-const projects = [
-  {
-    id: 1,
-    title: "Projet 01",
-    category: "Identité visuelle",
-    year: "2025",
-    color: "#232323",
-  },
-  {
-    id: 2,
-    title: "Projet 02",
-    category: "Direction artistique",
-    year: "2025",
-    color: "#4A7C59",
-  },
-  {
-    id: 3,
-    title: "Projet 03",
-    category: "Communication",
-    year: "2024",
-    color: "#232323",
-  },
-  {
-    id: 4,
-    title: "Projet 04",
-    category: "Design graphique",
-    year: "2024",
-    color: "#4A7C59",
-  },
+import { useEffect, useRef } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import Navigation from "@/components/Navigation";
+
+const PROJECTS = [
+  { id: 1,  slug: "ethikwear",       title: "Éthikwear",         category: "Identité visuelle",    year: "2025", image: "/projets/ethikwear.jpg"      },
+  { id: 2,  slug: "appartstudy",     title: "Appart'study",      category: "Direction artistique", year: "2025", image: "/projets/appartstudy.jpg"    },
+  { id: 3,  slug: "piscineo",        title: "Piscineo",          category: "Design digital",       year: "2024", image: "/projets/piscineo.jpg"       },
+  { id: 4,  slug: "superheroes",     title: "Affiche superhéro", category: "Affiche",              year: "2024", image: "/projets/superheroes.png"    },
+  { id: 5,  slug: "barz",            title: "Barz",              category: "Identité visuelle",    year: "2025", image: "/projets/barz.png"           },
+  { id: 6,  slug: "queen",           title: "QUEEN",             category: "Direction artistique", year: "2025", image: "/projets/queen.png"          },
+  { id: 7,  slug: "jobymatch",       title: "JobyMatch",         category: "Design UI",            year: "2026", image: "/projets/jobymatch.png"      },
+  { id: 8,  slug: "stade-bordelais", title: "Stade Bordelais",   category: "Communication",        year: "2025", image: "/projets/stade-bordelais.png"},
+  { id: 9,  slug: "brandboost",      title: "Brandboost",        category: "Identité visuelle",    year: "2025", image: "/projets/brandboost.png"     },
+  { id: 10, slug: "expo-ia",         title: "Expo photo & IA",   category: "Communication",        year: "2025", image: "/projets/expo-ia.png"        },
 ];
 
+/*
+  Principe de l'arc :
+  - Chaque carte calcule son Y en fonction de sa position ACTUELLE sur l'écran
+  - Carte au centre de l'écran → haut de l'arc (translateY = 0)
+  - Carte sur les bords → descend (translateY = dist² × MAX_Y)
+  ⇒ Au scroll, chaque carte monte en s'approchant du centre puis redescend en partant
+*/
+
+const MAX_Y   = 130; // chute max aux bords (px)
+const MAX_ROT = 7;   // rotation max aux bords (deg)
+
 export default function ProjectsPage() {
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const trackRef   = useRef<HTMLDivElement>(null);
+  const hintRef    = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    const track   = trackRef.current;
+    const hint    = hintRef.current;
+    if (!section || !track) return;
+
+    /* ── Met à jour la position de chaque carte selon son X courant ── */
+    const updateCards = (translateX: number) => {
+      const cx = window.innerWidth / 2;
+      track.style.transform = `translateX(${translateX}px)`;
+
+      /*
+        el.offsetLeft est relatif au parent positionné (le conteneur absolut),
+        pas au track. Le translateX du track déplace visuellement toutes les
+        cartes d'autant → cardCenterX = translateX + offsetLeft + halfWidth
+      */
+      Array.from(track.children).forEach((child) => {
+        const el  = child as HTMLElement;
+        const cardCenterX = translateX + el.offsetLeft + el.offsetWidth / 2;
+        const dist = (cardCenterX - cx) / cx; // −∞ à +∞, 0 = centre écran
+        const d    = Math.max(-2.5, Math.min(2.5, dist));
+        el.style.transform = `translateY(${d * d * MAX_Y}px) rotate(${d * MAX_ROT}deg)`;
+      });
+    };
+
+    /* ── Initialise padding, hauteur de section, état courant ── */
+    const setup = () => {
+      // Centre la 1ère carte : padding latéral = (viewport - 1 carte) / 2
+      const cardW = (track.children[0] as HTMLElement)?.offsetWidth || 192;
+      const pad   = Math.max(0, (window.innerWidth - cardW) / 2);
+      track.style.paddingLeft  = `${pad}px`;
+      track.style.paddingRight = `${pad}px`;
+
+      // Forcer le reflow en lisant une propriété layout avant de mesurer scrollWidth
+      void track.offsetWidth;
+
+      const maxPan = Math.max(0, track.scrollWidth - window.innerWidth);
+      section.style.height = `${maxPan + window.innerHeight}px`;
+
+      const scrolled = window.scrollY - (section.offsetTop || 0);
+      const progress = maxPan > 0 ? Math.max(0, Math.min(1, scrolled / maxPan)) : 0;
+      updateCards(-progress * maxPan);
+      if (hint) hint.style.opacity = progress > 0.05 ? "0" : "1";
+    };
+
+    /* ── Handler scroll ── */
+    const onScroll = () => {
+      const maxPan = Math.max(0, track.scrollWidth - window.innerWidth);
+      if (maxPan <= 0) return;
+      const scrolled = window.scrollY - (section.offsetTop || 0);
+      const progress = Math.max(0, Math.min(1, scrolled / maxPan));
+      updateCards(-progress * maxPan);
+      if (hint) hint.style.opacity = progress > 0.05 ? "0" : "1";
+    };
+
+    setup();
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", setup);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", setup);
+    };
+  }, []);
+
   return (
-    <main className="min-h-screen bg-[#F5F2ED] flex flex-col">
-      <Navigation />
+    <main style={{ background: "#F5F2ED" }}>
+      <div ref={sectionRef}>
 
-      {/* ─── Header ─── */}
-      <div className="px-8 md:px-14 pt-8 pb-16">
-        <p
-          className="text-[#4A7C59] tracking-[0.3em] uppercase mb-4"
-          style={{ fontFamily: "var(--font-poppins)", fontWeight: 300, fontSize: "0.7rem" }}
-        >
-          Sélection
-        </p>
-        <h2
-          className="text-[#232323] leading-none"
-          style={{
-            fontFamily: "var(--font-londrina-solid)",
-            fontWeight: 800,
-            fontSize: "clamp(3rem, 8vw, 7rem)",
-            textTransform: "uppercase",
-            letterSpacing: "-0.02em",
-          }}
-        >
-          Projets
-        </h2>
-      </div>
+        {/* ── Fenêtre sticky ── */}
+        <div style={{
+          position: "sticky",
+          top     : 0,
+          height  : "100vh",
+          overflow: "hidden",
+        }}>
 
-      {/* ─── Grille de projets ─── */}
-      <div className="flex-1 px-8 md:px-14 pb-24">
+          {/* Navigation */}
+          <div style={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 20 }}>
+            <Navigation />
+          </div>
 
-        {/* Liste style editorial */}
-        <div className="space-y-0">
-          {projects.map((project, i) => (
+          {/* Titre bas-gauche */}
+          <div style={{
+            position     : "absolute",
+            bottom       : "2.8rem",
+            left         : "2.8rem",
+            zIndex       : 10,
+            pointerEvents: "none",
+          }}>
+            <p style={{
+              fontFamily   : "var(--font-poppins)",
+              fontWeight   : 300,
+              fontSize     : "0.65rem",
+              letterSpacing: "0.28em",
+              textTransform: "uppercase",
+              color        : "rgba(35,35,35,0.38)",
+              marginBottom : "0.2rem",
+            }}>Sélection</p>
+            <h1 style={{
+              fontFamily   : "var(--font-londrina-solid)",
+              fontWeight   : 900,
+              fontSize     : "clamp(2.2rem, 5vw, 4.5rem)",
+              color        : "#232323",
+              lineHeight   : 1,
+              textTransform: "uppercase",
+            }}>Projets</h1>
+          </div>
+
+          {/* Hint scroll */}
+          <div ref={hintRef} style={{
+            position     : "absolute",
+            bottom       : "3rem",
+            right        : "2.8rem",
+            zIndex       : 10,
+            display      : "flex",
+            alignItems   : "center",
+            gap          : "0.5rem",
+            transition   : "opacity 0.4s ease",
+            pointerEvents: "none",
+          }}>
+            <span style={{
+              fontFamily   : "var(--font-poppins)",
+              fontWeight   : 300,
+              fontSize     : "0.6rem",
+              letterSpacing: "0.22em",
+              textTransform: "uppercase",
+              color        : "rgba(35,35,35,0.32)",
+            }}>Défiler</span>
+            <span style={{ color: "rgba(35,35,35,0.32)", fontSize: "0.85rem" }}>→</span>
+          </div>
+
+          {/* ── Conteneur de l'arc ── */}
+          {/*
+            top: 80px  → sous la nav
+            bottom: 100px → au-dessus du titre
+            Le track est centré verticalement dans cet espace
+          */}
+          <div style={{
+            position  : "absolute",
+            top       : "80px",
+            left      : 0,
+            right     : 0,
+            bottom    : "220px",
+            display   : "flex",
+            alignItems: "center",
+          }}>
             <div
-              key={project.id}
-              className="group border-t border-[#232323]/15 py-8 flex items-center justify-between cursor-pointer hover:bg-[#232323]/[0.02] transition-colors duration-300 -mx-8 md:-mx-14 px-8 md:px-14"
+              ref={trackRef}
+              style={{
+                display    : "flex",
+                alignItems : "center",
+                gap        : "1.4vw",
+                willChange : "transform",
+                flexShrink : 0,
+              }}
             >
-              {/* Numéro + Titre */}
-              <div className="flex items-baseline gap-8">
-                <span
-                  className="text-[#232323]/25 tabular-nums"
-                  style={{ fontFamily: "var(--font-poppins)", fontWeight: 300, fontSize: "0.7rem", letterSpacing: "0.1em" }}
-                >
-                  0{i + 1}
-                </span>
-                <h3
-                  className="text-[#232323] group-hover:text-[#4A7C59] transition-colors duration-300"
-                  style={{
-                    fontFamily: "var(--font-londrina-solid)",
-                    fontWeight: 800,
-                    fontSize: "clamp(1.6rem, 4vw, 3.5rem)",
-                    textTransform: "uppercase",
-                    letterSpacing: "-0.01em",
-                    lineHeight: 1,
-                  }}
-                >
-                  {project.title}
-                </h3>
-              </div>
-
-              {/* Catégorie + Année + Flèche */}
-              <div className="flex items-center gap-8 md:gap-14">
-                <span
-                  className="hidden md:block text-[#232323]/50 tracking-[0.2em] uppercase"
-                  style={{ fontFamily: "var(--font-poppins)", fontWeight: 300, fontSize: "0.7rem" }}
-                >
-                  {project.category}
-                </span>
-                <span
-                  className="text-[#232323]/40 tabular-nums"
-                  style={{ fontFamily: "var(--font-poppins)", fontWeight: 300, fontSize: "0.75rem" }}
-                >
-                  {project.year}
-                </span>
-                <span
-                  className="text-[#232323]/30 group-hover:text-[#4A7C59] group-hover:translate-x-1 transition-all duration-300"
-                  style={{ fontSize: "1rem" }}
-                >
-                  →
-                </span>
-              </div>
+              {PROJECTS.map((project) => (
+                <div key={project.id} style={{ flexShrink: 0 }}>
+                  <Link href={`/projects/${project.slug}`} style={{ display: "block", textDecoration: "none" }}>
+                    <div
+                      style={{
+                        width       : "clamp(140px, 15vw, 230px)",
+                        aspectRatio : "2 / 3",
+                        borderRadius: "0.45rem",
+                        overflow    : "hidden",
+                        position    : "relative",
+                        background  : "#1a1a1a",
+                        cursor      : "pointer",
+                        transition  : "box-shadow 0.35s ease",
+                        boxShadow   : "0 8px 32px rgba(0,0,0,0.14)",
+                      }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow = "0 20px 60px rgba(0,0,0,0.25)"; }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = "0 8px 32px rgba(0,0,0,0.14)"; }}
+                    >
+                      <Image
+                        src={project.image}
+                        alt={project.title}
+                        fill
+                        sizes="(max-width: 768px) 140px, 230px"
+                        style={{ objectFit: "cover" }}
+                      />
+                      <div style={{
+                        position  : "absolute",
+                        inset     : 0,
+                        background: "linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.08) 55%, transparent 100%)",
+                      }} />
+                      <div style={{ position: "absolute", bottom: "1rem", left: "1rem", right: "1rem" }}>
+                        <p style={{
+                          fontFamily   : "var(--font-poppins)",
+                          fontWeight   : 300,
+                          fontSize     : "0.52rem",
+                          letterSpacing: "0.18em",
+                          textTransform: "uppercase",
+                          color        : "rgba(255,255,255,0.52)",
+                          marginBottom : "0.22rem",
+                        }}>{project.category} · {project.year}</p>
+                        <p style={{
+                          fontFamily: "var(--font-londrina-solid)",
+                          fontWeight: 900,
+                          fontSize  : "0.95rem",
+                          color     : "#fff",
+                          lineHeight: 1.15,
+                        }}>{project.title}</p>
+                      </div>
+                    </div>
+                  </Link>
+                </div>
+              ))}
             </div>
-          ))}
-          {/* Bordure finale */}
-          <div className="border-t border-[#232323]/15" />
-        </div>
+          </div>
 
-        {/* Placeholder vignettes (layout optionnel) */}
-        <div className="mt-24 grid grid-cols-2 md:grid-cols-4 gap-4">
-          {projects.map((project) => (
-            <div
-              key={project.id}
-              className="aspect-[3/4] rounded-sm overflow-hidden relative group cursor-pointer"
-              style={{ backgroundColor: `${project.color}08` }}
-            >
-              {/* Fond coloré au hover */}
-              <div
-                className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                style={{ backgroundColor: `${project.color}10` }}
-              />
-              {/* Label */}
-              <div className="absolute bottom-4 left-4">
-                <p
-                  className="text-[#232323]/30 tracking-[0.2em] uppercase"
-                  style={{ fontFamily: "var(--font-poppins)", fontWeight: 300, fontSize: "0.55rem" }}
-                >
-                  {project.category}
-                </p>
-                <p
-                  className="text-[#232323]/60 mt-1"
-                  style={{ fontFamily: "var(--font-londrina-solid)", fontWeight: 900, fontSize: "0.9rem" }}
-                >
-                  {project.title}
-                </p>
-              </div>
-              {/* Coin décoratif */}
-              <div
-                className="absolute top-4 right-4 w-4 h-4 border-t border-r opacity-30 group-hover:opacity-80 transition-opacity duration-300"
-                style={{ borderColor: project.color }}
-              />
-            </div>
-          ))}
         </div>
       </div>
-
-      {/* Footer */}
-      <footer className="px-8 md:px-14 py-6 border-t border-[#232323]/10 flex justify-between items-center">
-        <span
-          className="text-[#232323]/30 tracking-[0.18em]"
-          style={{ fontFamily: "var(--font-poppins)", fontWeight: 300, fontSize: "0.6rem" }}
-        >
-          © 2025 Jade Lelièvre
-        </span>
-        <Link
-          href="/"
-          className="text-[#232323]/40 hover:text-[#232323] transition-colors tracking-[0.18em] uppercase"
-          style={{ fontFamily: "var(--font-poppins)", fontWeight: 300, fontSize: "0.6rem" }}
-        >
-          Accueil
-        </Link>
-      </footer>
     </main>
   );
 }
